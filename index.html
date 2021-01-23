@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Brasil</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #9CC0FA;
+            margin: 0 auto;
+        }
+
+        #svg-map {
+            cursor: pointer;
+        }
+
+        #svg-map .circle, #svg-map path {
+            fill: #90ee90;
+        }
+
+        #svg-map a:hover .circle, #svg-map a:hover path {
+            fill: #78866b !important;
+        }
+
+        #container {
+            display: flex;
+            justify-content: center;
+            padding-top: 100px;
+        }
+
+        #text {
+            width: 350px;
+            height: auto;
+            padding-left: 100px;
+            text-align: right;
+            color: black;
+            text-shadow: 1px 1px 1px #FFFFFF;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <img src="brasil.svg" onload="fetchSvg(this)" />
+        <div id="text">
+            <h1 id="stateName"></h1>
+            <h3 id="statePop"></h3>
+            <p id="stateDesc"></p>
+        </div>
+    </div>
+    <script>
+        const estados = [];
+
+        const fetchSvg = (image) => {
+            fetch(image.src)
+                .then((response) => response.text())
+                .then((response) => {
+                    const span = document.createElement('span');
+                    span.innerHTML = response;
+                    const inlineSvg = span.getElementsByTagName('svg')[0];
+                    image.parentNode.replaceChild(inlineSvg, image);
+                    return true;
+                })
+                .then(() => { getActions(); });
+        };
+
+        const getActions = () => {
+            const states = document.getElementsByClassName('estado');
+            for(let i = 0; i < states.length; i++) {
+                states[i].onclick = () => { stateClicked(states[i]); };
+            }
+            getEstados();
+        };
+
+        const getEstados = () => {
+            fetch('estados.json')
+                .then((response) => response.text())
+                .then((response) => {
+                    estados.push(...JSON.parse(response));
+                });
+        };
+
+        const stateClicked = (state) => {
+            const code = state.getAttribute('code');
+            const uf = estados.find(estado => estado.code === code);
+            if (!uf) return;
+            fillContent(uf);
+        };
+
+        const fillContent = ({ nome, sigla, populacao, descricao }) => {
+            const name = document.getElementById('stateName');
+            const population = document.getElementById('statePop');
+            const description = document.getElementById('stateDesc');
+
+            name.innerText = `${nome} (${sigla})`;
+            population.innerText = `População: ${populacao}`;
+            description.innerText = descricao;
+        };
+    </script>
+</body>
+</html>
